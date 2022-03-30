@@ -5,13 +5,13 @@ import os
 import json
 
 app = Quart(__name__)
-ipc_client = ipc.Client(secret_key="Sawsha")
+ipc_client = ipc.Client(secret_key="")
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
 
 app.config["SECRET_KEY"] = "test123"
-app.config["DISCORD_CLIENT_ID"] = 932462085516968027
-app.config["DISCORD_CLIENT_SECRET"] = "fqArZL1HLQJUsRf0wIEefgYUOtZkT9mB"
-app.config["DISCORD_REDIRECT_URI"] = "https://skyebot.dev/callback"
+app.config["DISCORD_CLIENT_ID"] = 
+app.config["DISCORD_CLIENT_SECRET"] = ""
+app.config["DISCORD_REDIRECT_URI"] = "Insert Callback Link Here"
 
 
 discord = DiscordOAuth2Session(app)
