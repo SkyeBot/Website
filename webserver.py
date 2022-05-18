@@ -140,8 +140,6 @@ async def me():
 
 
 
-
-
 @app.route("/logout/")
 async def logout():
     discord.revoke()
