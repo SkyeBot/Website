@@ -1,0 +1,18 @@
+ErrorDocument 404 /error_pages/404.html
+
+Options +FollowSymLinks
+
+<Files "login.json">  
+  Require all denied
+</Files>
+
+<Files "config.php">  
+  Require all denied
+</Files>
+
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f  
+RewriteCond %{REQUEST_FILENAME} !-d  
+RewriteRule .* rewrite.php [L] 
