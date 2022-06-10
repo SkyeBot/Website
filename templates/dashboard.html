@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <style>
+      body {
+    background-image: url("bg.png");
+    background-size: 40%;
+    color: #fff;
+    background-color: #191919;  
+  }
+  
+  h1,
+  h2 {
+    text-align: center;
+  }
+  
+  .picker {
+    margin: 2em;
+  
+    background-color: #191919;
+    border-radius: 3px;
+  }
+  
+  .picker h3 {
+    text-align: center;
+    padding-top: 2%;
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 1.5em;
+  }
+  
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    justify-items: center;
+  }
+  
+  .card {
+    margin: 0.5em;
+    display: grid;
+    grid-template-rows: 1fr 0.2fr;
+    justify-items: center;
+  }
+  
+  .card:hover {
+    transform: scale(1.1);
+  }
+  
+  .card img {
+    border-radius: 50%;
+    width: 7em;
+    height: 7em;
+  }
+  
+  .green-border {
+    border: 4px solid rgb(106, 255, 170);
+  }
+  
+  .red-border {
+    border: 4px solid rgb(255, 103, 90);
+  }
+
+  #main-content {
+    display: flex;
+    color: white;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    overflow-y:scroll;
+    overflow: hidden;
+    overflow-x: hidden;
+}
+    </style>
+    
+  <div id="main-content">
+      <img src="/static/image.png" style="height:15vh;min-height:150px;max-height:500px;border-radius:100%;" />
+    <h1>Skye bot Dashboard!</h1>
+    <h2>The Bot is in: {{guild_count}} servers</h2>
+  </div>
+    <div class="picker">
+      <h3>Hello, {{username}}#{{id}}! <br>Please select a server to get started</h3>
+      <hr />
+      <section class="cards">
+        {% if user.mutual_guilds is not none%}
+        
+          {% for guild in guilds %}
+          <div class="card">
+            <a href="/dashboard/{{guild.id}}">
+            {% if guild.icon_url is not none %}
+              <img src="{{guild.icon_url}}" class="{{guild.class_color}}" />
+            {% else %}
+              <img
+                src="https://cdn.discordapp.com/attachments/947191755097395223/949940018749767720/322c936a8c8be1b803cd94861bdfa868.png"
+                class="{{guild.class_color}}"
+              />
+            {% endif %}
+          </a>
+          <br />
+          {{ guild.name }}
+          </div>
+          {% endfor %}
+        {% else %}
+          {{redirect(url_for("invite"))}}
+
+        {%endif%}
+      </section>
+    </div>
+  </body>
+</html>
