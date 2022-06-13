@@ -7,6 +7,7 @@ from discord.ext import ipc
 import os
 import json
 import aiohttp
+import asyncpg
 
 
 dotenv.load_dotenv()
@@ -14,7 +15,7 @@ dotenv.load_dotenv()
 app = Quart(__name__)
 IPC = ipc.Client(
     host="127.0.0.1", 
-    port=2301, 
+    port=2300, 
     secret_key="your_secret_key_here"
 ) # These params must be the same as the ones in the client
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
@@ -41,7 +42,19 @@ async def home():
 
 @app.route('/a')
 async def ass():
-    return await app.ipc.request("get_guild_ids")
+    db = await asyncpg.create_pool(dsn="postgres://skye:GRwe2h2ATA5qrmpa@localhost:5432/skyetest")
+    prefix = await db.fetch("SELECT * FROM public.guilds ORDER BY guild_id ASC")
+
+    data = [dict(row) for row in prefix]
+
+
+    data = ", ".join(x.get("guild_name") for x in data)
+
+    return f"""{data}"""
+
+@app.route('/servers')
+async def servers():
+    return f"""{await discord.fetch_connections()}"""
 
 
 @app.route("/login")
@@ -69,26 +82,30 @@ async def dashboard():
 
     guild_count = await app.ipc.request("get_guild_count")
     guild_ids = await app.ipc.request("get_guild_ids")
+    print(guild_ids['data'])
 
     user = await discord.fetch_user()
     user_guilds = await discord.fetch_guilds()
-    
+    guild_ids = guild_ids['data']
 
     guilds = []
     
 
 
     for guild in user_guilds:
-    
-        if guild.permissions.administrator:
-            guild.class_color = "green-border" if guild.id in guild_ids else "red-border"
-            guilds.append(guild)
+        if guild.permissions.administrator:            
+            if guild.id in guild_ids:
+                guild.class_color = ".green-border" if guild.id in guild_ids else ".red-border"
+                guilds.append(guild)
+            else:
+                continue
+
         
     print(guilds)
 
     guild_count = guild_count['count']
     
-    guilds.sort(key=lambda x: x.class_color == "red-border")
+
     name = (await discord.fetch_user()).name
     id = (await discord.fetch_user()).discriminator
     return await render_template("dashboard.html", guild_count=guild_count, guilds=guilds, username=name, id=id, user=user)
@@ -123,32 +140,34 @@ async def dashboard_server(guild_id):
     gu_id = guild["id"]
     gu_name = guild["name"]
 
+    if gu_name is None:
+        return """No guild found!"""
+
 
     return await render_template("dashboard2.html", gu_name=gu_name, gu_id = gu_id)
         
 
-@app.route("/me/guilds/")
+@app.route("/me/guilds")
 async def user_guilds():
-    guilds = await discord.fetch_guilds()
-    return "<br />".join([f"[ADMIN] {g.name}" if g.permissions.administrator else g.name for g in guilds])
+    user_guilds = await discord.fetch_guilds()
+    guilds = []
+    
+    guild_ids = await app.ipc.request("get_guild_ids")
+
+    user = await discord.fetch_user()
+
+    name = (await discord.fetch_user()).name
+    id = (await discord.fetch_user()).discriminator
+
+    for guild in user_guilds:
+        if guild.permissions.administrator:
+
+            guild.class_color = ".green-border" if guild.id in guild_ids else ".red-border"
+            guilds.append(guild)
+    
+    return await render_template("dashboard.html", guild_count="34", guilds=guilds, username=name, id=id, user=user)
 
 
-@app.route("/me/")
-async def me():
-	user = await discord.fetch_user()
-	return f"""
-			<html>
-			<head>
-			<title>{user.name}</title>
-			</head>
-			<body><img src='{user.avatar_url or user.default_avatar_url}' />
-			<p>Is avatar animated: {str(user.is_avatar_animated)}</p>
-			<a href={url_for("my_connections")}>Connections</a>
-			<br />
-			</body>
-			</html>
-
-	"""
 
 
 
@@ -161,12 +180,15 @@ async def logout():
 
 
 if __name__ == '__main__':
+    
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
     try:
-        app.ipc = loop.run_until_complete(IPC.start(loop=loop)) # `Client.start()` returns new Client instance or None if it fails to start
+        app.ipc = loop.run_until_complete(IPC.start(loop=loop))
+        app.db = loop.run_until_complete(asyncpg.create_pool(dsn="postgres://skye:GRwe2h2ATA5qrmpa@localhost:5432/skyetest"))
         app.run(port=5000,loop=loop)
     finally:
         loop.run_until_complete(app.ipc.close()) # Closes the session, doesn't close the loop
         loop.close()
+    
