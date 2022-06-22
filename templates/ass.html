@@ -1,0 +1,35 @@
+<html>
+  <body>
+    <head>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+      <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+      <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    </head>
+    
+    <center>
+        <input type="checkbox" class='toggle' checked data-toggle="toggle">
+        <div class='status'>Toggled</div>
+    </center>
+  </body>
+  <script>
+    $(document).ready(function() {
+     $('.toggle').click(function() {
+      var current_status = $('.status').text();
+    
+      $.ajax({
+       url: "/get_toggled_status",
+       type: "post",
+        data: {status: current_status},
+        success: function(response) {
+         $(".status").html(response);
+        },
+        error: function(xhr) {
+         //Do Something to handle error
+        }
+      });
+     });
+   });
+   </script>
+</html>
